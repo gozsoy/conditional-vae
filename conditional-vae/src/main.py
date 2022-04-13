@@ -1,33 +1,44 @@
 import numpy as np
 import tensorflow as tf
 
-from model import VAE
-from utils import generate_images,visualize_latent_space,plot_latent_images
+from model import Conditional_VAE
+from utils import generate_conditioned_digits
 
 
 def prepare_data():
-
+    
     (x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
 
     # [0,255] -> [0,1]
     x_train = x_train/255.
-    x_test = x_test/255.
     dataset_mean,dataset_std = np.mean(x_train),np.std(x_train)
     # standardization
     x_train = (x_train - dataset_mean) / (dataset_std)
-    x_train = tf.keras.layers.Flatten()(x_train)
-    x_test = (x_test - dataset_mean) / (dataset_std)
-    x_test = tf.keras.layers.Flatten()(x_test)
+    x_train = np.expand_dims(x_train,axis=3)
+    x_train = tf.cast(x_train,dtype=tf.float32)
 
-    train_ds = tf.data.Dataset.from_tensor_slices((x_train,y_train))
+    # convert labels into one-hot vector
+    def convert_onehot(idx):
+        arr = np.zeros((10))
+        arr[idx] = 1.0
+        return arr
+
+    y_train_onehot = np.zeros((y_train.shape[0],10))
+
+    for idx,temp_y in enumerate(y_train):
+        y_train_onehot[idx] = convert_onehot(temp_y)
+
+
+    train_ds = tf.data.Dataset.from_tensor_slices((x_train,y_train_onehot))
     train_ds = train_ds.shuffle(1000).batch(64)
     train_ds = train_ds.prefetch(tf.data.AUTOTUNE)
 
-    return train_ds,x_test,dataset_mean,dataset_std
+    return train_ds,dataset_mean,dataset_std
+
 
 # closed form kl loss computation between variational posterior q(z|x) and unit Gaussian prior p(z) 
 def kl_loss(z_mu,z_rho):
-    sigma_squared = tf.math.softplus(z_rho) ** 2 # MAKE THIS ON
+    sigma_squared = tf.math.softplus(z_rho) ** 2
     kl_1d = -0.5 * (1 + tf.math.log(sigma_squared) - z_mu ** 2 - sigma_squared)
 
     # sum over sample dim, average over batch dim
@@ -45,9 +56,9 @@ def elbo(z_mu,z_rho,decoded_img,original_img):
 
 
 
-def train(latent_dim,beta,epochs,train_ds,x_test,dataset_mean,dataset_std):
+def train(latent_dim,beta,epochs,train_ds,dataset_mean,dataset_std):
 
-    model = VAE(latent_dim)
+    model = Conditional_VAE(latent_dim)
 
     optimizer = tf.keras.optimizers.Adam(learning_rate = 0.001)
 
@@ -65,7 +76,7 @@ def train(latent_dim,beta,epochs,train_ds,x_test,dataset_mean,dataset_std):
             # training loop
             with tf.GradientTape() as tape:
                 # forward pass
-                z_mu,z_rho,decoded_imgs = model(imgs)
+                z_mu,z_rho,decoded_imgs = model(imgs,labels)
 
                 # compute loss
                 mse,kl = elbo(z_mu,z_rho,decoded_imgs,imgs)
@@ -94,14 +105,8 @@ def train(latent_dim,beta,epochs,train_ds,x_test,dataset_mean,dataset_std):
 
 
         # generate new samples
-        generate_images(model,dataset_mean,dataset_std,temp_x_test=None)
-        # encode and decode samples from test data
-        generate_images(model,dataset_mean,dataset_std,temp_x_test=x_test[:16])
-        # visualize the latent space by non-linear dim reduction
-        #visualize_latent_space(z_mu_list,label_list)
-        # plot 2D digit manifold if latent dim=2
-        if latent_dim==2:
-            plot_latent_images(model,dataset_mean,dataset_std)
+        generate_conditioned_digits(model,dataset_mean,dataset_std)
+
 
         # display metrics at the end of each epoch.
         epoch_kl,epoch_mse = kl_loss_tracker.result(),mse_loss_tracker.result()
@@ -111,15 +116,16 @@ def train(latent_dim,beta,epochs,train_ds,x_test,dataset_mean,dataset_std):
         kl_loss_tracker.reset_state()
         mse_loss_tracker.reset_state()
 
-    return
+    return model,z_mu_list,label_list
+
 
 
 if __name__ == '__main__':
 
-    beta = 12.
-    epochs = 15
-    latent_dim = 2
+    beta = 1e-11
+    epochs = 10
+    latent_dim = 15
 
-    train_ds,x_test,dataset_mean,dataset_std = prepare_data()
+    train_ds,dataset_mean,dataset_std = prepare_data()
 
-    train(latent_dim,beta,epochs,train_ds,x_test,dataset_mean,dataset_std)
+    model,z_mu_list,label_list = train(latent_dim,beta,epochs,train_ds,dataset_mean,dataset_std)

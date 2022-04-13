@@ -15,33 +15,46 @@ In experiments below, latent space visualization is obtained by TSNE on encoder 
 
 #### KL Loss vs. Reconstruction Loss
 + &beta; = 0.0 (optimising only reconstruction loss): Latent space idea is not used because encoder can put each sample in separate places with punctual variations. Test image reconstruction quality is high even if they are not used in training, but generation ability is very low.
-<p align="center">
-<img src="./results/tsne_transformed_latent_space_beta0.png" height="270px">
-<img src="./results/generated_test_images_beta0.png" height="270px">
-<img src="./results/generated_new_images_beta0.png" height="270px">
-</p>
-<p align="center">
-Left: 2d latent space, center: reconstructed test set images, right: newly generated images
-</p>
+<table align='center'>
+<tr align='center'>
+<td> 2d latent space </td>
+<td> reconstructed test set images </td>
+<td> Inewly generated images </td>
+</tr>
+<tr>
+<td><img src="./results/tsne_transformed_latent_space_beta0.png" height="270px">
+<td><img src="./results/generated_test_images_beta0.png" height="270px">
+<td><img src="./results/generated_new_images_beta0.png" height="270px">
+</tr>
+</table>
 
 + &beta; = 200.0 (optimising only kl loss): Without reconstruction pressure, all samples will have unit gaussian parameters, thus in the latent space no label(or similarity)-based clustering will be observed. Test image reconstruction quality, and generation ability are very low.
-<p align="center">
-<img src="./results/tsne_transformed_latent_space_beta200.png" height="270px">
-<img src="./results/generated_test_images_beta200.png" height="270px">
-<img src="./results/generated_new_images_beta200.png" height="270px">
-</p>
-<p align="center">
-Left: 2d latent space, center: reconstructed test set images, right: newly generated images
-</p>
+<table align='center'>
+<tr align='center'>
+<td> 2d latent space </td>
+<td> reconstructed test set images </td>
+<td> Inewly generated images </td>
+</tr>
+<tr>
+<td><img src="./results/tsne_transformed_latent_space_beta200.png" height="270px">
+<td><img src="./results/generated_test_images_beta200.png" height="270px">
+<td><img src="./results/generated_new_images_beta200.png" height="270px">
+</tr>
+</table>
+
 
 + &beta; = 12.0 (optimising both losses): Both clustering nature of reconstruction loss and dense packing nature of kl loss observed.
-<p align="center">
-<img src="./results/tsne_transformed_latent_space_beta8.png" height="450px">
-<img src="./results/digit_manifold_2d_beta12.png" height="450px">
-</p>
-<p align="center">
-Left: 2d latent space, right: digit manifold when latent dimension = 2
-</p>
+<table align='center'>
+<tr align='center'>
+<td> 2d latent space </td>
+<td> digit manifold when latent dimension = 2 </td>
+</tr>
+<tr>
+<td><img src="./results/tsne_transformed_latent_space_beta8.png" height="400px">
+<td><img src="./results/digit_manifold_2d_beta12.png" height="400px">
+</tr>
+</table>
+
 
 ### Model
 Both encoder and decoder consist of two fully connected hidden layers. Various ways of VAE implementation is possible in TF, but I computed both losses after forward pass, which means model provides both encoder and decoder outputs.

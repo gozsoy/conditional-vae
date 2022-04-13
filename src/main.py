@@ -27,7 +27,7 @@ def prepare_data():
 
 # closed form kl loss computation between variational posterior q(z|x) and unit Gaussian prior p(z) 
 def kl_loss(z_mu,z_rho):
-    sigma_squared = tf.math.softplus(z_rho) ** 2
+    sigma_squared = tf.math.softplus(z_rho) ** 2 # MAKE THIS ON
     kl_1d = -0.5 * (1 + tf.math.log(sigma_squared) - z_mu ** 2 - sigma_squared)
 
     # sum over sample dim, average over batch dim
@@ -116,7 +116,7 @@ def train(latent_dim,beta,epochs,train_ds,x_test,dataset_mean,dataset_std):
 
 if __name__ == '__main__':
 
-    beta = 15.
+    beta = 12.
     epochs = 15
     latent_dim = 2
 

@@ -5,7 +5,7 @@ import seaborn as sns
 import tensorflow as tf
 import tensorflow_probability as tfp
 import matplotlib.pyplot as plt
-from sklearn.manifold import TSNE
+from sklearn.manifold import TSNE,Isomap
 from sklearn.model_selection import StratifiedKFold
 import warnings
 
@@ -15,7 +15,7 @@ warnings.filterwarnings("ignore")
 def visualize_latent_space(z_mu_list,label_list):
 
     # cannot work on full training samples so get a small and stratified portion
-    skf = StratifiedKFold(n_splits=5)
+    skf = StratifiedKFold(n_splits=20)
     for _, test_index in skf.split(z_mu_list, label_list):
         mini_z_mu_list, mini_label_list = z_mu_list[test_index], label_list[test_index]
         break

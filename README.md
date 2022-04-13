@@ -1,4 +1,4 @@
-# simple-vae
+# conditional-vae
 Tensorflow implementations of (Conditional) Variational Autoencoder concepts
 
 ### Usage
